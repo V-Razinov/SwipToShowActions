@@ -1,12 +1,9 @@
-@file:OptIn(ExperimentalFoundationApi::class)
-
 package v.razinov.swiptoshowactions
 
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,9 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import v.razinov.swiptoshowactions.swipeable.Swipeable
+import v.razinov.swiptoshowactions.swipeable.rememberSwipeableState
 import v.razinov.swiptoshowactions.ui.theme.SwipToShowActionsTheme
 
 class MainActivity : ComponentActivity() {
@@ -76,30 +72,36 @@ class MainActivity : ComponentActivity() {
                                 key = { it },
                                 contentType = { "qwe" }
                             ) { item ->
+                                val swipeableState = rememberSwipeableState()
                                 Swipeable(
                                     modifier = Modifier
                                         .fillParentMaxWidth()
                                         .padding(horizontal = 16.dp)
                                         .background(Color.Blue)
                                         .clipToBounds(),
-                                    content = { progress ->
+                                    state = swipeableState,
+                                    content = {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .fillMaxHeight()
                                                 .clip(
                                                     RoundedCornerShape(
-                                                        topEnd = (16 * progress).dp,
-                                                        bottomEnd = (16 * progress).dp,
+                                                        topEnd = (16 * swipeableState.progress).dp,
+                                                        bottomEnd = (16 * swipeableState.progress).dp,
                                                     )
                                                 )
                                                 .background(Color.Red)
                                         ) {
-                                            Text(text = "WrapContent")
+                                            Text(text = "WrapContent\nWrapContent\nWrapContent\nWrapContent\nWrapContent\nWrapContent")
                                         }
                                     },
-                                    endAction = { progress ->
-                                        Actions(showMessage, progress)
+                                    endAction = {
+                                        Actions(
+                                            modifier = Modifier.fillMaxHeight(),
+                                            showMessage,
+                                            swipeableState.progress
+                                        )
                                     }
                                 )
                             }
@@ -112,10 +114,13 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun Actions(showMessage: (String) -> Unit, progress: Float) {
+    private fun Actions(
+        modifier: Modifier = Modifier,
+        showMessage: (String) -> Unit,
+        progress: Float
+    ) {
         Row(
-            modifier = Modifier
-                .fillMaxHeight(),
+            modifier = modifier,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
